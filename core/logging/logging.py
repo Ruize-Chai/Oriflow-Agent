@@ -127,7 +127,7 @@ class ColorFormatter:
         """初始化Windows控制台以支持颜色"""
         try:
             import ctypes
-            kernel32 = ctypes.windll.kernel32
+            kernel32 = ctypes.windll.kernel32#type:ignore
             hStdout = kernel32.GetStdHandle(-11)
             mode = ctypes.c_ulong()
             kernel32.GetConsoleMode(hStdout, ctypes.byref(mode))

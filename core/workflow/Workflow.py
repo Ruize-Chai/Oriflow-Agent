@@ -4,12 +4,13 @@ from core.skill.Skill_search import Search_Skill
 
 
 class Workflow:
-    def __init__(self, data: Dict[str, Any]):
+    def __init__(self, data: Dict[str, Any], context: Dict[str, Any] | None = None):
         self._validate_workflow(data)
         self._workflow_id: str = data["workflow_id"]
         self._entry: int = data["entry"]
         self._nodes: List[Dict[str, Any]] = data["nodes"]
         self._meta: Dict[str, Any] = data.get("meta", {})
+        self._context: Dict[str, Any] = {} if context is None else context
         self._node_map: Dict[int, Dict[str, Any]] = {
             node["id"]: node for node in self._nodes
         }
@@ -71,6 +72,9 @@ class Workflow:
         return self._skills
 
     def _get_skill_map(self) -> Dict[int, Skill]:
+        '''
+        迭代构建
+        '''
         if self._skill_map is None:
             self._skill_map = {}
             for node in self._nodes:
@@ -88,8 +92,8 @@ class Workflow:
         if next_id not in outputs:
             raise ValueError("next_id not found in current node outputs")
 
-    def execute(self, context: Dict[str, Any]) -> None:
-        #执行逻辑：根据Skill.execute()的返回值作为下一个节点进行跳转
+    def execute(self) -> None:
+        '''执行逻辑:根据Skill.execute()的返回值作为下一个节点进行跳转'''
         skill_map = self._get_skill_map()
         current_id = self._entry
 
@@ -97,7 +101,7 @@ class Workflow:
             if current_id not in skill_map:
                 raise ValueError(f"Unknown node id: {current_id}")
 
-            next_id = skill_map[current_id].execute(context)
+            next_id = skill_map[current_id].execute(self._context)
             if next_id is None:
                 self._validate_next(current_id, next_id)
                 return
