@@ -66,6 +66,28 @@ class Workflow:
         if data["entry"] not in node_ids:
             raise ValueError("entry must reference an existing node id")
 
+        #环路检查(DAG有向无环)
+        node_map = {node["id"]: node for node in data["nodes"]}
+        visiting: Set[int] = set()
+        visited: Set[int] = set()
+
+        def dag_dfs(node_id: int) -> None:
+            if node_id in visiting:
+                raise ValueError("workflow has a cycle")
+            if node_id in visited:
+                return
+
+            visiting.add(node_id)
+            for next_id in node_map[node_id]["outputs"]:
+                if next_id is None:
+                    continue
+                dag_dfs(next_id)
+            visiting.remove(node_id)
+            visited.add(node_id)
+
+        for node_id in node_map:
+            dag_dfs(node_id)
+
     def get_skills(self) -> List[Skill]:
         if self._skills is None:
             self._skills = [Search_Skill(node["type"], node) for node in self._nodes]
