@@ -1,6 +1,7 @@
 # Oriflow Agent
 
 A Python-based workflow engine with a FastAPI backend, featuring a plugin-based skill system, DAG (Directed Acyclic Graph) workflow execution, and a user authentication system.
+## **参赛声明：本项目不基于任何已有Workflow框架,是一次开发项目.**
 
 ## Features
 
