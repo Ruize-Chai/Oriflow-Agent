@@ -14,6 +14,7 @@ import threading
 import json
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+from Logger import RecordMustBeDict
 
 
 def _default_txt_path() -> str:
@@ -61,7 +62,7 @@ class TextWriter:
         Returns the written line (without trailing newline).
         """
         if not isinstance(record, dict):
-            raise TypeError('record must be a dict')
+            raise RecordMustBeDict()
 
         line = self._format(record)
 

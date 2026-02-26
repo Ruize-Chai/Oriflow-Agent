@@ -113,6 +113,158 @@
       "source": "Logger/errors/Errors.py"
     },
     {
+      "code": 815,
+      "name": "JSONTopLevelNotObject",
+      "message": "JSON file does not contain an object at top level",
+      "default_level": "error",
+      "category": "io",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 816,
+      "name": "JSONDoesNotRepresentObject",
+      "message": "JSON does not represent an object",
+      "default_level": "error",
+      "category": "validation",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 817,
+      "name": "InvalidJSON",
+      "message": "Invalid JSON",
+      "default_level": "error",
+      "category": "validation",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 818,
+      "name": "UnsupportedDataTypeError",
+      "message": "Unsupported data type, expected dict or JSON string",
+      "default_level": "error",
+      "category": "validation",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 819,
+      "name": "DataMustBeDict",
+      "message": "data must be a dict",
+      "default_level": "error",
+      "category": "io",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 820,
+      "name": "RecordMustBeDict",
+      "message": "record must be a dict",
+      "default_level": "error",
+      "category": "io",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 821,
+      "name": "RecordNotJSONSerializable",
+      "message": "record is not JSON serializable",
+      "default_level": "error",
+      "category": "io",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 822,
+      "name": "PayloadNotADict",
+      "message": "payload is not a dict",
+      "default_level": "error",
+      "category": "validation",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 823,
+      "name": "TypeMissingOrInvalid",
+      "message": "`type` missing or invalid",
+      "default_level": "error",
+      "category": "validation",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 824,
+      "name": "InputsMissingOrInvalid",
+      "message": "`inputs` missing or invalid",
+      "default_level": "error",
+      "category": "validation",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 825,
+      "name": "OutputsMissingOrInvalid",
+      "message": "`outputs` missing or invalid",
+      "default_level": "error",
+      "category": "validation",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 826,
+      "name": "ParamsMissingOrInvalid",
+      "message": "`params` missing or invalid",
+      "default_level": "error",
+      "category": "validation",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 827,
+      "name": "ListenMissingOrInvalid",
+      "message": "`listen` missing or invalid",
+      "default_level": "error",
+      "category": "validation",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 828,
+      "name": "WorkflowIDMissingOrInvalid",
+      "message": "`workflow_id` missing or invalid",
+      "default_level": "error",
+      "category": "workflow",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 829,
+      "name": "EntryMissingOrInvalid",
+      "message": "`entry` missing or invalid",
+      "default_level": "error",
+      "category": "workflow",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 830,
+      "name": "NodesMissingOrInvalid",
+      "message": "`nodes` missing or invalid",
+      "default_level": "error",
+      "category": "workflow",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 831,
+      "name": "EachNodeMustBeObject",
+      "message": "each node must be an object/dict",
+      "default_level": "error",
+      "category": "workflow",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 832,
+      "name": "NodeIDMustBeInteger",
+      "message": "node.id must be an integer",
+      "default_level": "error",
+      "category": "workflow",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
+      "code": 833,
+      "name": "NodeTypeMustBeString",
+      "message": "node.type must be a string",
+      "default_level": "error",
+      "category": "workflow",
+      "source": "Logger/errors/Errors.py"
+    },
+    {
       "code": 901,
       "name": "PluginImportError",
       "message": "Plugin module import failed",

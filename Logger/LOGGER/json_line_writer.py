@@ -16,6 +16,7 @@ import os
 import threading
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+from Logger import RecordMustBeDict, RecordNotJSONSerializable
 
 
 def _default_log_path() -> str:
@@ -55,7 +56,7 @@ class JSONLineWriter:
         Raises `TypeError` if the record is not JSON-serializable.
         """
         if not isinstance(record, dict):
-            raise TypeError('record must be a dict')
+            raise RecordMustBeDict()
 
         r = self._prepare_record(record)
 
@@ -64,7 +65,7 @@ class JSONLineWriter:
             line = json.dumps(r, ensure_ascii=False, separators=(',', ':'))
         except TypeError as e:
             # attempt to provide a helpful message
-            raise TypeError(f'record is not JSON serializable: {e}') from e
+            raise RecordNotJSONSerializable(str(e)) from e
 
         # Append newline
         line_to_write = line + '\n'

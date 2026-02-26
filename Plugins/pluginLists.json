@@ -15,5 +15,18 @@
 		"Merge",
 		"Logger",
 		"Transformer"
+	],
+
+	"llm_plugins" : [
+		"LLM_Answer",
+		"LLM_FileProduction",
+		"LLM_Summarize",
+		"LLM_QA",
+		"LLM_Translate",
+		"LLM_CodeGeneration",
+		"LLM_DataExtraction",
+		"LLM_Conversation"
 	]
+
+	
 }

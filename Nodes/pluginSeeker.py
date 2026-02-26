@@ -5,7 +5,7 @@ from Logger import PluginImportError, PluginInstantiateError
 '''
 约定:
 - `node_name` 必须与插件包名一致（位于 `Plugins` 目录下）
-- 插件包中必须实现名为 `Self_node` 的类，且该类接受单个 dict 作为构造参数
+- 插件包中必须实现名为 `Self_node` 的类，且该类接受单个 dict 作为构造参数并实现execute()
 
 函数 `Search_Node` 会导入 `Plugins.<node_name>` 模块，查找 `Self_node`,
 并使用 `node_data` 实例化返回该节点对象。
