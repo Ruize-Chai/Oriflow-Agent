@@ -124,43 +124,87 @@ __all__ = [
 
 
 #809
-class NodePayloadValidationError(OriflowError, ValidationError):
+class NodePayloadValidationError(OriflowError):
 	DEFAULT_CODE = 809
 
-	def __init__(self, message: Optional[str] = None, code: Optional[int] = None, level: Optional[SeverityLevel] = None):
+	def __init__(self, message: Optional[str] = None, code: Optional[int] = None,
+				 level: Optional[SeverityLevel] = None, validation_error: Optional[ValidationError] = None):
 		if message is None:
 			message = "NodePayload validation failed"
-		OriflowError.__init__(self, message, code or self.DEFAULT_CODE, level)
+		super().__init__(message, code or self.DEFAULT_CODE, level)
+		self.validation_error: Optional[ValidationError] = validation_error
+
+	def to_dict(self):
+		base = super().to_dict()
+		if self.validation_error is not None:
+			try:
+				base["validation_errors"] = self.validation_error.errors()
+			except Exception:
+				base["validation_errors"] = str(self.validation_error)
+		return base
 
 
 #810
-class WorkflowPayloadValidationError(OriflowError, ValidationError):
+class WorkflowPayloadValidationError(OriflowError):
 	DEFAULT_CODE = 810
 
-	def __init__(self, message: Optional[str] = None, code: Optional[int] = None, level: Optional[SeverityLevel] = None):
+	def __init__(self, message: Optional[str] = None, code: Optional[int] = None,
+				 level: Optional[SeverityLevel] = None, validation_error: Optional[ValidationError] = None):
 		if message is None:
 			message = "WorkflowPayload validation failed"
-		OriflowError.__init__(self, message, code or self.DEFAULT_CODE, level)
+		super().__init__(message, code or self.DEFAULT_CODE, level)
+		self.validation_error: Optional[ValidationError] = validation_error
+
+	def to_dict(self):
+		base = super().to_dict()
+		if self.validation_error is not None:
+			try:
+				base["validation_errors"] = self.validation_error.errors()
+			except Exception:
+				base["validation_errors"] = str(self.validation_error)
+		return base
 
 
 #811
-class NodeDictValidationError(OriflowError, ValidationError):
+class NodeDictValidationError(OriflowError):
 	DEFAULT_CODE = 811
 
-	def __init__(self, message: Optional[str] = None, code: Optional[int] = None, level: Optional[SeverityLevel] = None):
+	def __init__(self, message: Optional[str] = None, code: Optional[int] = None,
+				 level: Optional[SeverityLevel] = None, validation_error: Optional[ValidationError] = None):
 		if message is None:
 			message = "Node dict validation failed"
-		OriflowError.__init__(self, message, code or self.DEFAULT_CODE, level)
+		super().__init__(message, code or self.DEFAULT_CODE, level)
+		self.validation_error: Optional[ValidationError] = validation_error
+
+	def to_dict(self):
+		base = super().to_dict()
+		if self.validation_error is not None:
+			try:
+				base["validation_errors"] = self.validation_error.errors()
+			except Exception:
+				base["validation_errors"] = str(self.validation_error)
+		return base
 
 
 #812
-class WorkflowDictValidationError(OriflowError, ValidationError):
+class WorkflowDictValidationError(OriflowError):
 	DEFAULT_CODE = 812
 
-	def __init__(self, message: Optional[str] = None, code: Optional[int] = None, level: Optional[SeverityLevel] = None):
+	def __init__(self, message: Optional[str] = None, code: Optional[int] = None,
+				 level: Optional[SeverityLevel] = None, validation_error: Optional[ValidationError] = None):
 		if message is None:
 			message = "Workflow dict validation failed"
-		OriflowError.__init__(self, message, code or self.DEFAULT_CODE, level)
+		super().__init__(message, code or self.DEFAULT_CODE, level)
+		self.validation_error: Optional[ValidationError] = validation_error
+
+	def to_dict(self):
+		base = super().to_dict()
+		if self.validation_error is not None:
+			try:
+				base["validation_errors"] = self.validation_error.errors()
+			except Exception:
+				base["validation_errors"] = str(self.validation_error)
+		return base
 
 
 __all__.extend([
