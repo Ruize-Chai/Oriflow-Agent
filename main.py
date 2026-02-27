@@ -2,17 +2,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from Server.comm_adapter import router as comm_router
-from Server.workflow_manage.create_workflow import router as wf_manage_router
-from Server.api_keys import router as keys_router
 
 app = FastAPI(title="Oriflow Minimal API")
-
-# mount comm adapter routes
-app.include_router(comm_router)
-app.include_router(wf_manage_router)
-app.include_router(keys_router)
-
 
 class HealthResponse(BaseModel):
     status: str

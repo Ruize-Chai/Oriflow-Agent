@@ -96,6 +96,22 @@ def is_valid_node_dict(d: Any) -> bool:
     params = d.get("params", None)
     if not isinstance(params, dict):
         raise ParamsMissingOrInvalid()
+    # context_slot in params should be list of objects {id:int, key:str}
+    context_slot = params.get("context_slot", [])
+    if context_slot is not None:
+        if not isinstance(context_slot, list):
+            raise ParamsMissingOrInvalid()
+        for item in context_slot:
+            if not isinstance(item, dict):
+                raise ParamsMissingOrInvalid()
+            if "id" not in item or not isinstance(item.get("id"), int):
+                raise ParamsMissingOrInvalid()
+            if "key" not in item or not isinstance(item.get("key"), str):
+                raise ParamsMissingOrInvalid()
+    # context (node-level) should be an object/dict
+    context = d.get("context", {})
+    if context is not None and not isinstance(context, dict):
+        raise ParamsMissingOrInvalid()
     # listen
     listen = d.get("listen", [])
     if listen is not None and (not isinstance(listen, list) or not all(isinstance(i, int) for i in listen)):
@@ -129,6 +145,7 @@ def is_valid_workflow_dict(d: Any) -> bool:
                 "outputs": n.get("outputs", []),
                 "params": n.get("params", {}),
                 "listen": n.get("listen", []),
+                "context": n.get("context", {}),
             })
         except NodeDictValidationError as nde:
             raise nde

@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Checkbox Payloads",
+  "type": "object",
+  "oneOf": [
+    {
+      "required": ["node_id", "options"],
+      "properties": {
+        "node_id": { "type": "integer" },
+        "options": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    {
+      "required": ["node_id", "selections"],
+      "properties": {
+        "node_id": { "type": "integer" },
+        "selections": { "type": "array", "items": { "type": "integer" } }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

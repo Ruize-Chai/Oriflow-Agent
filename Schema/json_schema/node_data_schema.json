@@ -22,15 +22,30 @@
 			"uniqueItems": true,
 			"description": "Outgoing node ids, null means end"
 		},
+		"context": {
+			"type": "object",
+			"additionalProperties": true,
+			"description": "Context storage object (arbitrary key/value pairs) attached to node"
+		},
 		"params": {
 			"type": "object",
 			"description": "Skill params with optional context placement",
 			"additionalProperties": true,
 			"properties": {
 				"context_slot": {
-					"type": "string",
-					"description": "Context write location key"
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": ["id", "key"],
+						"properties": {
+							"id": { "type": "integer" },
+							"key": { "type": "string" }
+						}
+					},
+					"uniqueItems": true,
+					"description": "List of {id:int, key:str} pairs to lookup context entries"
 				},
+				
 				"config_options": {
 					"type": "array",
 					"items": {},

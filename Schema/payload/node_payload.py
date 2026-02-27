@@ -1,9 +1,14 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Dict
 from pydantic import BaseModel, Field
 
 
+class ContextSlot(BaseModel):
+    id: int
+    key: str
+
+
 class NodeParams(BaseModel):
-    context_slot: Optional[str] = None
+    context_slot: Optional[List[ContextSlot]] = Field(default_factory=list)
     config_options: Optional[List[Any]] = None
 
 
@@ -13,5 +18,6 @@ class NodePayload(BaseModel):
     type: str
     inputs: List[int] = Field(default_factory=list)
     outputs: List[Optional[int]] = Field(default_factory=list)
+    context: Dict[str, Any] = Field(default_factory=dict)
     params: NodeParams
     listen: Optional[List[int]] = Field(default_factory=list)

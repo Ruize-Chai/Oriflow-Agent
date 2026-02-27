@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Text Payload",
+  "type": "object",
+  "required": ["node_id", "text"],
+  "additionalProperties": false,
+  "properties": {
+    "node_id": { "type": "integer" },
+    "text": { "type": "string" }
+  }
+}

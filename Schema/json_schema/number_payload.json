@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Number Payload",
+  "type": "object",
+  "required": ["node_id", "value"],
+  "additionalProperties": false,
+  "properties": {
+    "node_id": { "type": "integer" },
+    "value": { "type": "number" }
+  }
+}

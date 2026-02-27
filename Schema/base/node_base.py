@@ -17,6 +17,8 @@ class BaseNode:
         self.inputs = data.get("inputs", [])
         self.outputs = data.get("outputs", [])
         self.params = data.get("params", {})
+        # 节点级上下文（顶层）
+        self.context = data.get("context", {})
         self.listen = data.get("listen", [])
 
     def to_dict(self):
@@ -26,6 +28,7 @@ class BaseNode:
             "listen": self.listen,
             "outputs": self.outputs,
             "params": self.params,
+            "context": self.context,
             "inputs": self.inputs,
         }
 

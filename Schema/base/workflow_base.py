@@ -13,6 +13,7 @@ class BaseWorkflow:
 
         self.workflow_id = data.get("workflow_id")
         self.entry = data.get("entry")
+        # 节点列表保持原始字典或 BaseNode 实例
         self.nodes = data.get("nodes", [])
 
     def to_dict(self) -> Dict[str, Any]:

@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Chatbox Output Payload",
+  "type": "object",
+  "required": ["node_id", "message"],
+  "additionalProperties": false,
+  "properties": {
+    "node_id": { "type": "integer" },
+    "message": { "type": "string" },
+    "meta": { "type": ["object", "null"] }
+  }
+}

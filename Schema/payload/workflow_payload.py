@@ -8,6 +8,8 @@ class WorkflowNode(BaseModel):
     type: str
     listen: Optional[List[int]] = Field(default_factory=list)
     outputs: Optional[List[Optional[int]]] = Field(default_factory=list)
+    inputs: Optional[List[int]] = Field(default_factory=list)
+    context: Optional[Dict[str, Any]] = Field(default_factory=dict)
     params: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
 

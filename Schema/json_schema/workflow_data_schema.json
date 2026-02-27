@@ -47,9 +47,35 @@
           "uniqueItems": true,
           "description": "Outgoing node ids, null means end"
         },
+        "context": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Context storage object attached to node"
+        },
         "params": {
           "type": "object",
-          "additionalProperties": true
+          "description": "Node parameters",
+          "additionalProperties": true,
+          "properties": {
+            "context_slot": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "key"],
+                "properties": {
+                  "id": { "type": "integer" },
+                  "key": { "type": "string" }
+                }
+              },
+              "uniqueItems": true,
+              "description": "List of {id:int, key:str} pairs to lookup context entries"
+            },
+            "config_options": {
+              "type": "array",
+              "items": {},
+              "description": "Optional list of config options"
+            }
+          }
         }
       }
     }
