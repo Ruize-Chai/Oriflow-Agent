@@ -5,6 +5,14 @@
 
 ## 后端提供的服务:
 ## HTTP SERVICE PROVIDE WITH BY BACKEND
+### GET PLUGINLISTS
+非流式GET 获取插件表
+REQUIRE:NONE
+RETURN:`PLUGIN LIST PAYLAOD`/"ERROR MESSAGE"
+
+
+
+
 ### FOR WORKFLOW MANAGEMENT:
 关于工作流的注册和删除:
 非流式POST 创建/(保存)工作流 CREATE A WORKFLOW WITH ID
@@ -82,14 +90,14 @@ REQUIRE:NONE
 RETURN:`FILEBASE LISTS PAYLOAD`/"ERROR MESSAGE"
 
 # COMMUNICATE HUB
-#### IN-COUMMUNICATE HUB 转发中枢
+#### IN-COUMMUNICATE HUB 向内转发中枢
 所有节点向HUB订阅一个通信窗口(MSG WINDOW).
 HUB可以解析外来PAYLOAD并转发给占有它的NODE.
 节点应当AWAIT 来自窗口的消息.
 暴露的接口：外部转发要求.`in_commuHUB.send(nodeid:int,msg:Dict[Any])`
 
 
-#### EX-COUMMUNICATE HUB 寄存中枢
+#### EX-COUMMUNICATE HUB 向外寄存中枢
 所有节点向HUB订阅一个通信窗口(MSG WINDOW).
 节点可以把信息寄存在此，等待前端的GET请求.
 节点本身放置不必等待，放置后请提示前端GET。
