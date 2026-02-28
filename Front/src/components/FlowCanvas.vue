@@ -3,7 +3,7 @@
     <div class="grid" />
     <EdgeRenderer :nodes="internalNodes" :edges="edges" :activeEdges="activeEdgeIds" />
     <div class="nodes">
-      <NodeRenderer v-for="n in internalNodes" :key="n.id" :node="n" :state="nodeStates[n.id]" :style="nodeStyle(n)" @select="select" @moved="onNodeMoved" @create="onCreateFromNode" @delete="onNodeDelete" />
+      <NodeRenderer v-for="n in internalNodes" :key="n.id" :node="n" :state="nodeStates[n.id]" :style="nodeStyle(n)" @select="select" @moved="onNodeMoved" @delete="onNodeDelete" />
     </div>
   </div>
 </template>
@@ -73,41 +73,6 @@ function onNodeMoved(node: any) {
   const idx = internalNodes.value.findIndex((x: any) => x.id === node.id)
   if (idx !== -1) internalNodes.value.splice(idx, 1, node)
   emit('update:nodes', internalNodes.value)
-}
-
-// Create a new node from an existing node and let it follow cursor until mouseup
-let creatingNode: any = null
-let onMoveWindow: any = null
-let onUpWindow: any = null
-
-function onCreateFromNode(sourceNode: any) {
-  if (!root.value) return
-  const rect = root.value.getBoundingClientRect()
-  const id = Date.now() % 100000
-  const newNode = { id, type: sourceNode.type, x: (sourceNode.x || 0) + 20, y: (sourceNode.y || 0) + 20, params: JSON.parse(JSON.stringify(sourceNode.params || {})) }
-  // push provisional node so it's rendered
-  internalNodes.value.push(newNode)
-  emit('add', newNode)
-  emit('update:nodes', internalNodes.value)
-  creatingNode = newNode
-
-  onMoveWindow = (e: MouseEvent) => {
-    const x = Math.round(e.clientX - rect.left)
-    const y = Math.round(e.clientY - rect.top)
-    creatingNode.x = x
-    creatingNode.y = y
-    emit('update:nodes', internalNodes.value)
-  }
-  onUpWindow = (e: MouseEvent) => {
-    window.removeEventListener('mousemove', onMoveWindow)
-    window.removeEventListener('mouseup', onUpWindow)
-    creatingNode = null
-    onMoveWindow = null
-    onUpWindow = null
-    emit('update:nodes', internalNodes.value)
-  }
-  window.addEventListener('mousemove', onMoveWindow)
-  window.addEventListener('mouseup', onUpWindow)
 }
 
 function onNodeDelete(nodeId: number) {
