@@ -56,10 +56,20 @@ def save_workflow(workflow_id: str, payload: Dict[str, Any]) -> str:
     for e in lists:
         if e.get("id") == workflow_id:
             e["filename"] = filename
+            # carry name if provided in payload
+            if isinstance(payload, dict):
+                name = payload.get("name")
+                if name:
+                    e["name"] = name
             found = True
             break
     if not found:
-        lists.append({"id": workflow_id, "filename": filename})
+        entry = {"id": workflow_id, "filename": filename}
+        if isinstance(payload, dict):
+            name = payload.get("name")
+            if name:
+                entry["name"] = name
+        lists.append(entry)
     save_workflow_lists(lists)
     return path
 

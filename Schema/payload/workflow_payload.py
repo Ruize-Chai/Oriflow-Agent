@@ -14,6 +14,6 @@ class WorkflowNode(BaseModel):
 
 
 class WorkflowPayload(BaseModel):
-    workflow_id: str
+    workflow_id: Optional[str] = None
     entry: int
     nodes: List[WorkflowNode]

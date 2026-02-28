@@ -1,0 +1,18 @@
+:root{
+  --bg:#0f172a;
+  --panel:#081127;
+  --muted:rgba(230,238,248,0.14);
+  --accent:#06b6d4;
+  --success:#10b981;
+  --error:#ef4444;
+}
+html,body,#app{height:100%;margin:0}
+body{background:var(--bg);color:#e6eef8;font-family:Inter,ui-sans-serif,system-ui,-apple-system}
+
+/* subtle pulse */
+@keyframes pulse-amber{0%{box-shadow:0 0 0 0 rgba(255,184,77,0.08)}50%{box-shadow:0 0 18px 6px rgba(255,184,77,0.04)}100%{box-shadow:0 0 0 0 rgba(255,184,77,0)}}
+
+.app-root{height:100%}
+
+/* element overrides for dark */
+.el-button--primary { background: linear-gradient(90deg,#0366d6,#0ea5a5); border:none }

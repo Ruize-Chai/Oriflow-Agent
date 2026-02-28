@@ -1,33 +1,44 @@
 from fastapi import APIRouter, HTTPException
 from typing import Any, Dict
-from pydantic import BaseModel
 from Server.utils import save_workflow, load_workflow, delete_workflow, read_workflow_lists
+from Schema.payload.workflow_payload import WorkflowPayload as SchemaWorkflowPayload
 import uuid
 
 router = APIRouter(prefix="/workflow", tags=["workflow"])
 
 
-class WorkflowPayload(BaseModel):
-    id: str | None = None
-    name: str | None = None
-    nodes: list | None = None
-
-
 @router.post("/create")
-def create_workflow(payload: WorkflowPayload):
-    wid = payload.id or str(uuid.uuid4())
+def create_workflow(payload: SchemaWorkflowPayload):
+    # 按 Schema/payload/workflow_payload.py 中的约定使用字段
+    wid = payload.workflow_id or str(uuid.uuid4())
     data = payload.dict()
-    data["id"] = wid
+    data["workflow_id"] = wid
     save_workflow(wid, data)
-    return {"status": "ok", "id": wid}
+    return {"status": "ok", "workflow_id": wid}
 
 
 @router.post("/alter")
-def alter_workflow(payload: WorkflowPayload):
-    if not payload.id:
-        raise HTTPException(status_code=400, detail="workflow id required")
-    save_workflow(payload.id, payload.dict())
-    return {"status": "ok", "id": payload.id}
+def alter_workflow(payload: SchemaWorkflowPayload):
+    if not payload.workflow_id:
+        raise HTTPException(status_code=400, detail="workflow_id required")
+    save_workflow(payload.workflow_id, payload.dict())
+    return {"status": "ok", "workflow_id": payload.workflow_id}
+
+
+@router.post("/delete")
+def remove_workflow(body: dict):
+    wid = body.get("workflow_id") or body.get("id")
+    if not wid:
+        raise HTTPException(status_code=400, detail="workflow_id required")
+    ok = delete_workflow(wid)
+    if not ok:
+        raise HTTPException(status_code=500, detail="delete failed")
+    return {"status": "ok", "workflow_id": wid}
+
+
+@router.get("/list")
+def list_workflows():
+    return read_workflow_lists()
 
 
 @router.get("/{workflow_id}")
@@ -36,19 +47,3 @@ def get_workflow(workflow_id: str):
     if wf is None:
         raise HTTPException(status_code=404, detail="workflow not found")
     return wf
-
-
-@router.post("/delete")
-def remove_workflow(body: dict):
-    wid = body.get("id")
-    if not wid:
-        raise HTTPException(status_code=400, detail="workflow id required")
-    ok = delete_workflow(wid)
-    if not ok:
-        raise HTTPException(status_code=500, detail="delete failed")
-    return {"status": "ok"}
-
-
-@router.get("/list")
-def list_workflows():
-    return read_workflow_lists()

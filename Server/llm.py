@@ -1,13 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from Schema.payload.llm_api_payload import LLMApiPayload
 from Workflow import llm_config
 
 router = APIRouter(prefix="/llm", tags=["llm"])
-
-
-class LLMPayload(BaseModel):
-    api_key: str | None = None
-    endpoint: str | None = None
 
 
 @router.get("/")
@@ -16,7 +11,7 @@ def get_llm():
 
 
 @router.post("/save")
-def save_llm(payload: LLMPayload):
+def save_llm(payload: LLMApiPayload):
     try:
         llm_config.set_llm_api(api_key=payload.api_key, endpoint=payload.endpoint)
         return {"status": "ok"}
