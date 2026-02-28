@@ -76,11 +76,10 @@ function onNodeMoved(node: any) {
 }
 
 function onNodeDelete(nodeId: number) {
-  const idx = internalNodes.value.findIndex((n: any) => n.id === nodeId)
-  if (idx !== -1) {
-    internalNodes.value.splice(idx, 1)
-    emit('update:nodes', internalNodes.value)
-  }
+  // Filter out the deleted node to force Vue reactivity
+  const filtered = internalNodes.value.filter((n: any) => n.id !== nodeId)
+  internalNodes.value = filtered
+  emit('update:nodes', filtered)
 }
 
 defineExpose({ internalNodes })
