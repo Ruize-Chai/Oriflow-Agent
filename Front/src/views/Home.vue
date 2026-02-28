@@ -13,7 +13,6 @@
         <el-button type="primary" @click="saveWorkflow">Save</el-button>
         <el-input class="new-wid-input" size="small" placeholder="id (optional)" v-model="newWorkflowId" clearable style="width:220px" />
         <el-button type="info" @click="createWorkflow">Create</el-button>
-        <el-button type="success" @click="runWorkflow">Run</el-button>
         <el-button type="warning" @click="interrupt">Interrupt</el-button>
       </div>
 
@@ -37,59 +36,42 @@
           <NodeToolbox />
           <FlowCanvas ref="canvas" :nodes="nodes" :nodeStates="nodeStates" @add="onAddNode" @select="onSelectNode" @update:nodes="onNodesUpdate" />
       <aside class="rightpanel">
-        <div class="mode-toggle">
-          <el-button :plain="mode==='editor'" @click="mode='editor'">Editor</el-button>
-          <el-button :plain="mode==='run'" @click="mode='run'">Run</el-button>
+        <Chatbox ref="chat" :initial="chatMessages" :showInput="false" />
+        <div class="run-controls">
+          <el-select v-model="selectedRunWorkflow" placeholder="Select workflow to run" style="width:100%;margin-bottom:8px" @change="onRunWorkflowSelect">
+            <el-option v-for="w in workflows" :key="w.id" :label="w.name || w.filename" :value="w.id" />
+          </el-select>
+          <el-button type="success" style="width:100%" @click="startRunWorkflow" :disabled="!selectedRunWorkflow">Run Selected</el-button>
         </div>
-        <div v-if="mode==='editor'" class="props-panel">
-          <h3>Properties</h3>
-          <div v-if="selectedNode">
-              <el-form :model="selectedNode">
-                <el-form-item label="Type"><el-input v-model="selectedNode.type" disabled/></el-form-item>
-                <el-form-item label="ID"><el-input v-model="selectedNode.id" disabled/></el-form-item>
-                <el-form-item label="Context Slots">
-                  <div v-for="(cs, i) in (selectedNode.params?.context_slot || [])" :key="i" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-                    <el-input size="small" v-model="cs.id" style="width:80px" />
-                    <el-input size="small" v-model="cs.key" placeholder="key" />
-                    <el-button type="danger" size="small" @click="() => removeContextSlot(i)">Remove</el-button>
-                  </div>
-                  <el-button size="small" type="primary" @click="addContextSlot">Add Slot</el-button>
-                </el-form-item>
-              </el-form>
+        <el-dialog title="Human Intervention" v-model="awaitingInput.open">
+          <div v-if="awaitingInput.type === 'TEXT INPUT'">
+            <el-form>
+              <el-form-item label="Input">
+                <el-input v-model="inputModel.text" />
+              </el-form-item>
+            </el-form>
           </div>
-        </div>
-        <div v-else class="run-panel">
-          <Chatbox ref="chat" :initial="chatMessages" :showInput="false" />
-          <el-dialog title="Human Intervention" :visible.sync="awaitingInput.open">
-            <div v-if="awaitingInput.type === 'TEXT INPUT'">
-              <el-form>
-                <el-form-item label="Input">
-                  <el-input v-model="inputModel.text" />
-                </el-form-item>
-              </el-form>
-            </div>
-            <div v-else-if="awaitingInput.type === 'NUMBER INPUT'">
-              <el-form>
-                <el-form-item label="Number">
-                  <el-input-number v-model="inputModel.number" :controls="true" />
-                </el-form-item>
-              </el-form>
-            </div>
-            <div v-else-if="awaitingInput.type === 'CHECKBOX'">
-              <el-form>
-                <el-form-item label="Options">
-                  <el-checkbox-group v-model="inputModel.selections">
-                    <el-checkbox v-for="(o, i) in awaitingInput.options" :key="i" :label="i">{{ o }}</el-checkbox>
-                  </el-checkbox-group>
-                </el-form-item>
-              </el-form>
-            </div>
-            <template #footer>
-              <el-button @click="awaitingInput.open = false">取消</el-button>
-              <el-button type="primary" @click="submitIntervention">提交</el-button>
-            </template>
-          </el-dialog>
-        </div>
+          <div v-else-if="awaitingInput.type === 'NUMBER INPUT'">
+            <el-form>
+              <el-form-item label="Number">
+                <el-input-number v-model="inputModel.number" :controls="true" />
+              </el-form-item>
+            </el-form>
+          </div>
+          <div v-else-if="awaitingInput.type === 'CHECKBOX'">
+            <el-form>
+              <el-form-item label="Options">
+                <el-checkbox-group v-model="inputModel.selections">
+                  <el-checkbox v-for="(o, i) in awaitingInput.options" :key="i" :label="i">{{ o }}</el-checkbox>
+                </el-checkbox-group>
+              </el-form-item>
+            </el-form>
+          </div>
+          <template #footer>
+            <el-button @click="awaitingInput.open = false">Cancel</el-button>
+            <el-button type="primary" @click="submitIntervention">Submit</el-button>
+          </template>
+        </el-dialog>
       </aside>
     </div>
   </div>
@@ -113,6 +95,7 @@ const mode = ref<'editor'|'run'>('editor')
 const newWorkflowId = ref<string>('')
 const chat = ref<any>(null)
 const chatMessages = ref([])
+const selectedRunWorkflow = ref<string | null>(null)
 
 // LLM Configuration
 const llmReady = ref(false)
@@ -149,6 +132,11 @@ async function saveLLMConfig() {
 
 function openLLMDialog() {
   llmDialogVisible.value = true
+}
+
+function onRunWorkflowSelect(id: string) {
+  // Clear chat when selecting a new workflow
+  chat.value?.clearHistory()
 }
 
 function onSelectWorkflow(id: string) {
@@ -254,6 +242,69 @@ async function saveWorkflow() {
 
 async function interrupt() { await api.postInterrupt(); window.alert('interrupt sent') }
 
+async function startRunWorkflow() {
+  if (!selectedRunWorkflow.value) { window.alert('Please select a workflow'); return }
+  chat.value?.clearHistory()
+  chat.value?.appendSystemMessage(`Workflow "${selectedRunWorkflow.value}" started`, '▶️ RUN')
+
+  // start SSE run and listen for states
+  const gen = api.runWorkflowEvents(selectedRunWorkflow.value)
+  (async () => {
+    for await (const ev of gen) {
+      // ev is NodeStateListPayload
+      for (const s of ev.states) {
+        // handle chatbox outputs
+        if ((s.state || '').toUpperCase() === 'OUTPUT') {
+          try {
+            const r = await api.getChatboxOutput(selectedRunWorkflow.value as string, s.node_id)
+            const data = r.data as any
+            const msg = { role: 'ai', content: data.message, meta: data.meta }
+            chat.value?.appendMessage(msg)
+          } catch (e) {
+            // ignore
+          }
+        }
+        // handle waiting states -> if TEXT INPUT/NUMBER INPUT/CHECKBOX open modal
+        if (['TEXT INPUT','NUMBER INPUT','CHECKBOX'].includes((s.state||'').toUpperCase())) {
+          const st = (s.state||'').toUpperCase()
+          const stateMsg = st === 'TEXT INPUT' ? '📝 INPUT'
+                         : st === 'NUMBER INPUT' ? '🔢 NUMBER'
+                         : '☑️ SELECT'
+          chat.value?.appendSystemMessage(
+            `Node #${s.node_id} is awaiting your input`,
+            stateMsg
+          )
+          // prepare dialog
+          awaitingInput.value.node_id = s.node_id
+          awaitingInput.value.type = st
+          awaitingInput.value.open = true
+          inputModel.value = { text: '', number: 0, selections: [] }
+          if (st === 'CHECKBOX') {
+            // fetch options
+            try {
+              const r = await api.getCheckboxOptions(selectedRunWorkflow.value as string, s.node_id)
+              const data = r.data
+              // schema: CheckboxOptionsPayload { node_id, options }
+              awaitingInput.value.options = data.options || []
+            } catch (e) {
+              awaitingInput.value.options = []
+            }
+          }
+        }
+
+        // handle success/error states
+        if (s.state === 'SUCCESS') {
+          chat.value?.appendSystemMessage(`Node #${s.node_id} completed`, '✅ OK')
+        } else if (s.state === 'ERROR') {
+          chat.value?.appendSystemMessage(`Node #${s.node_id} failed`, '❌ ERROR')
+        }
+      }
+    }
+    // Workflow completed
+    chat.value?.appendSystemMessage('Workflow execution completed', '✨ DONE')
+  })()
+}
+
 async function createWorkflow() {
   // minimal create using current nodes; allow user-specified id or generate UUID
   const entry = nodes.value[0]?.id || 0
@@ -280,7 +331,8 @@ onMounted(()=>{
 })
 
 async function submitIntervention() {
-  const wid = selectedWorkflow.value
+  // Support both editing workflow and running any workflow from right panel
+  const wid = selectedRunWorkflow.value || selectedWorkflow.value
   const nid = awaitingInput.value.node_id
   const t = (awaitingInput.value.type || '').toUpperCase()
   if (!wid || nid == null) return
@@ -309,6 +361,7 @@ async function submitIntervention() {
 .topbar { height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; border-bottom:1px solid rgba(255,255,255,0.03) }
 .main { display:flex; flex:1 }
 .rightpanel { width:400px; border-left:1px solid rgba(255,255,255,0.03); display:flex; flex-direction:column }
+.run-controls { padding:12px; border-top:1px solid rgba(255,255,255,0.03) }
 .mode-toggle { padding:12px }
 .props-panel { padding:12px }
 .run-panel { padding:0; height:100% }

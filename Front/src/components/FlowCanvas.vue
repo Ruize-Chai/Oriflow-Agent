@@ -3,7 +3,7 @@
     <div class="grid" />
     <EdgeRenderer :nodes="internalNodes" :edges="edges" :activeEdges="activeEdgeIds" />
     <div class="nodes">
-      <NodeRenderer v-for="n in internalNodes" :key="n.id" :node="n" :state="nodeStates[n.id]" :style="nodeStyle(n)" @select="select" @moved="onNodeMoved" @create="onCreateFromNode" />
+      <NodeRenderer v-for="n in internalNodes" :key="n.id" :node="n" :state="nodeStates[n.id]" :style="nodeStyle(n)" @select="select" @moved="onNodeMoved" @create="onCreateFromNode" @delete="onNodeDelete" />
     </div>
   </div>
 </template>
@@ -108,6 +108,14 @@ function onCreateFromNode(sourceNode: any) {
   }
   window.addEventListener('mousemove', onMoveWindow)
   window.addEventListener('mouseup', onUpWindow)
+}
+
+function onNodeDelete(nodeId: number) {
+  const idx = internalNodes.value.findIndex((n: any) => n.id === nodeId)
+  if (idx !== -1) {
+    internalNodes.value.splice(idx, 1)
+    emit('update:nodes', internalNodes.value)
+  }
 }
 
 defineExpose({ internalNodes })
