@@ -1,0 +1,33 @@
+{
+  "workflow_id": "test-workflow-1",
+  "entry": 0,
+  "nodes": [
+    {
+      "id": 0,
+      "type": "Start",
+      "listen": [],
+      "outputs": [1],
+      "inputs": [],
+      "context": {},
+      "params": {}
+    },
+    {
+      "id": 1,
+      "type": "LLM_Answer",
+      "listen": [],
+      "outputs": [2],
+      "inputs": [0],
+      "context": {},
+      "params": { "context_slot": [] }
+    },
+    {
+      "id": 2,
+      "type": "END",
+      "listen": [],
+      "outputs": [],
+      "inputs": [1],
+      "context": {},
+      "params": {}
+    }
+  ]
+}

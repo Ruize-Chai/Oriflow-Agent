@@ -1,6 +1,7 @@
 <template>
   <div class="node-wrap" :style="styleObj" @mousedown.stop.prevent="startDrag" @touchstart.stop.prevent="startTouch">
-    <component :is="nodeComponent" :node="node" :state="state" @select="onClick" @change="onChildChange" />
+    <button class="create-btn" @click.stop.prevent="onCreate">+</button>
+    <component :is="nodeComponent" :node="node" :state="state" :stateClass="stateClass" @select="onClick" @change="onChildChange" />
   </div>
 </template>
 
@@ -18,7 +19,7 @@ import LLMAnswerNode from './LLMAnswerNode.vue'
 import LLMFileProductionNode from './LLMFileProductionNode.vue'
 
 const props = defineProps<{ node: any; state?: string; style?: any }>()
-const emit = defineEmits(['select','moved'])
+const emit = defineEmits(['select','moved','create'])
 
 const mapping: Record<string, any> = {
   'Start': StartNode,
@@ -40,6 +41,16 @@ let start = { x: 0, y: 0, ox: 0, oy: 0 }
 
 const styleObj = computed(() => ({ left: (node.x || pos.value.x) + 'px', top: (node.y || pos.value.y) + 'px', position: 'absolute', cursor: dragging.value ? 'grabbing' : 'grab' }))
 
+// 映射状态到CSS类名
+const stateClass = computed(() => {
+  const st = (props.state || '').toUpperCase()
+  if (['RUNNING', 'ACTIVE'].includes(st)) return 'running'
+  if (['TEXT INPUT', 'NUMBER INPUT', 'CHECKBOX'].includes(st)) return 'waiting'
+  if (st === 'SUCCESS') return 'success'
+  if (st === 'ERROR') return 'error'
+  return 'idle'
+})
+
 const nodeComponent = computed(() => mapping[node.type] || StartNode)
 
 function onClick(payload?: any) { emit('select', node) }
@@ -47,6 +58,10 @@ function onClick(payload?: any) { emit('select', node) }
 function onChildChange(updated: any) {
   // child emits change with node; ensure parent knows
   emit('moved', updated || node)
+}
+
+function onCreate() {
+  emit('create', node)
 }
 
 function startDrag(e: MouseEvent) {
@@ -117,5 +132,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.node-wrap { width:160px; height:72px; user-select:none }
+.node-wrap { width:160px; height:72px; user-select:none; -webkit-user-select:none }
+.create-btn { position:absolute; right:6px; top:6px; width:20px; height:20px; border-radius:4px; border:none; background:rgba(255,255,255,0.06); color:#e6eef8; cursor:pointer }
+.create-btn:hover { background:rgba(255,255,255,0.12) }
 </style>

@@ -89,6 +89,14 @@ export const getFilebaseList = async () => {
   return client.get('/filebase/list')
 }
 
+export const getLlmConfig = async () => {
+  return client.get('/llm/')
+}
+
+export const saveLlmConfig = async (config: { api_key: string; endpoint?: string }) => {
+  return client.post('/llm/save', config)
+}
+
 // Run workflow: POST /runtime/run returns text/event-stream. Implement fetch+readable stream parser and yield parsed JSON events.
 export async function* runWorkflowEvents(workflow_id: string) {
   const res = await fetch(`${BASE}/runtime/run`, {
@@ -144,4 +152,6 @@ export default {
   getChatboxOutput,
   postInterrupt,
   getFilebaseList,
+  getLlmConfig,
+  saveLlmConfig,
 }

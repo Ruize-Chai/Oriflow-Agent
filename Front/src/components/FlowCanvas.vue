@@ -1,20 +1,52 @@
 <template>
   <div class="canvas" ref="root" @dragover.prevent @drop="onDrop">
     <div class="grid" />
+    <EdgeRenderer :nodes="internalNodes" :edges="edges" :activeEdges="activeEdgeIds" />
     <div class="nodes">
-      <NodeRenderer v-for="n in internalNodes" :key="n.id" :node="n" :state="nodeStates[n.id]" :style="nodeStyle(n)" @select="select" @moved="onNodeMoved" />
+      <NodeRenderer v-for="n in internalNodes" :key="n.id" :node="n" :state="nodeStates[n.id]" :style="nodeStyle(n)" @select="select" @moved="onNodeMoved" @create="onCreateFromNode" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import NodeRenderer from './nodes/NodeRenderer.vue'
+import EdgeRenderer from './EdgeRenderer.vue'
+
 const props = defineProps<{ nodes?: any[]; nodeStates?: Record<number,string> }>()
 const emit = defineEmits(['add','select','update:nodes'])
 const root = ref<HTMLElement | null>(null)
 const internalNodes = ref<any[]>(props.nodes ? JSON.parse(JSON.stringify(props.nodes)) : [])
 const nodeStates = props.nodeStates || {}
+
+// 从节点的listen和outputs字段推导边信息
+const edges = computed(() => {
+  const edgeList: any[] = []
+  internalNodes.value.forEach(node => {
+    if (node.outputs && Array.isArray(node.outputs)) {
+      node.outputs.forEach((targetId: any, idx: number) => {
+        if (targetId !== null && targetId !== undefined) {
+          edgeList.push({
+            id: `${node.id}->${targetId}-${idx}`,
+            from: node.id,
+            to: targetId
+          })
+        }
+      })
+    }
+  })
+  return edgeList
+})
+
+// 如果目标节点处于RUNNING或ACTIVE状态，则边处于active
+const activeEdgeIds = computed(() => {
+  return edges.value
+    .filter(e => {
+      const targetState = nodeStates[e.to]
+      return targetState && ['RUNNING', 'ACTIVE'].includes(targetState.toUpperCase())
+    })
+    .map(e => e.id)
+})
 
 watch(() => props.nodes, (v) => { if (v) internalNodes.value = JSON.parse(JSON.stringify(v)) }, { deep: true })
 
@@ -43,14 +75,46 @@ function onNodeMoved(node: any) {
   emit('update:nodes', internalNodes.value)
 }
 
+// Create a new node from an existing node and let it follow cursor until mouseup
+let creatingNode: any = null
+let onMoveWindow: any = null
+let onUpWindow: any = null
+
+function onCreateFromNode(sourceNode: any) {
+  if (!root.value) return
+  const rect = root.value.getBoundingClientRect()
+  const id = Date.now() % 100000
+  const newNode = { id, type: sourceNode.type, x: (sourceNode.x || 0) + 20, y: (sourceNode.y || 0) + 20, params: JSON.parse(JSON.stringify(sourceNode.params || {})) }
+  // push provisional node so it's rendered
+  internalNodes.value.push(newNode)
+  emit('add', newNode)
+  emit('update:nodes', internalNodes.value)
+  creatingNode = newNode
+
+  onMoveWindow = (e: MouseEvent) => {
+    const x = Math.round(e.clientX - rect.left)
+    const y = Math.round(e.clientY - rect.top)
+    creatingNode.x = x
+    creatingNode.y = y
+    emit('update:nodes', internalNodes.value)
+  }
+  onUpWindow = (e: MouseEvent) => {
+    window.removeEventListener('mousemove', onMoveWindow)
+    window.removeEventListener('mouseup', onUpWindow)
+    creatingNode = null
+    onMoveWindow = null
+    onUpWindow = null
+    emit('update:nodes', internalNodes.value)
+  }
+  window.addEventListener('mousemove', onMoveWindow)
+  window.addEventListener('mouseup', onUpWindow)
+}
+
 defineExpose({ internalNodes })
 </script>
 
 <style scoped>
-.canvas { position:relative; flex:1; overflow:hidden; background: linear-gradient(180deg,#071022 0%, #071428 100%); }
+.canvas { position:relative; flex:1; overflow:hidden; background: linear-gradient(180deg,#071022 0%, #071428 100%); user-select:none; -webkit-user-select:none }
 .grid { position:absolute; inset:0; background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 20px 20px }
 .nodes { position:relative }
-.node { position:absolute; width:160px; height:72px; border-radius:8px; background:rgba(255,255,255,0.03); color:#e6eef8; padding:8px; box-shadow: 0 6px 18px rgba(2,6,23,0.6) }
-.node .title { font-weight:600 }
-.node .id { font-size:12px; opacity:0.6 }
 </style>

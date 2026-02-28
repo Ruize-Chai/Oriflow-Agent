@@ -5,12 +5,33 @@
         <el-option v-for="w in workflows" :key="w.id" :label="w.name || w.filename" :value="w.id" />
       </el-select></div>
       <div class="right" style="display:flex;gap:8px;align-items:center">
+        <div class="llm-indicator" :class="{ ready: llmReady, error: !llmReady }">
+          <div class="dot"></div>
+          <span>{{ llmReady ? 'LLM Ready' : 'LLM Not Configured' }}</span>
+        </div>
+        <el-button text @click="openLLMDialog" type="primary" style="font-size:12px">⚙️</el-button>
         <el-button type="primary" @click="saveWorkflow">Save</el-button>
         <el-input class="new-wid-input" size="small" placeholder="id (optional)" v-model="newWorkflowId" clearable style="width:220px" />
         <el-button type="info" @click="createWorkflow">Create</el-button>
         <el-button type="success" @click="runWorkflow">Run</el-button>
         <el-button type="warning" @click="interrupt">Interrupt</el-button>
       </div>
+
+      <!-- LLM Configuration Dialog -->
+      <el-dialog title="LLM Configuration" v-model="llmDialogVisible" width="400px">
+        <el-form :model="llmConfig" label-position="top">
+          <el-form-item label="API Key">
+            <el-input v-model="llmConfig.api_key" type="password" placeholder="Enter your OpenAI API key" />
+          </el-form-item>
+          <el-form-item label="Endpoint (optional)">
+            <el-input v-model="llmConfig.endpoint" placeholder="https://api.openai.com/v1" />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="llmDialogVisible = false">Cancel</el-button>
+          <el-button type="primary" @click="saveLLMConfig">Save Config</el-button>
+        </template>
+      </el-dialog>
     </header>
     <div class="main">
           <NodeToolbox />
@@ -93,9 +114,41 @@ const newWorkflowId = ref<string>('')
 const chat = ref<any>(null)
 const chatMessages = ref([])
 
+// LLM Configuration
+const llmReady = ref(false)
+const llmDialogVisible = ref(false)
+const llmConfig = reactive({ api_key: '', endpoint: '' })
+
 async function loadWorkflowList() {
   const res = await api.getWorkflowList()
   workflows.value = res?.data || []
+}
+
+async function loadLLMConfig() {
+  try {
+    const res = await api.getLlmConfig()
+    const data = res?.data || {}
+    llmConfig.api_key = data.api_key || ''
+    llmConfig.endpoint = data.endpoint || ''
+    llmReady.value = !!(data.api_key && data.api_key.trim())
+  } catch (e) {
+    llmReady.value = false
+  }
+}
+
+async function saveLLMConfig() {
+  try {
+    await api.saveLlmConfig(llmConfig as any)
+    await loadLLMConfig()
+    llmDialogVisible.value = false
+    ;(window as any).$message?.success('LLM config saved')
+  } catch (e) {
+    ;(window as any).$message?.error('Failed to save LLM config')
+  }
+}
+
+function openLLMDialog() {
+  llmDialogVisible.value = true
 }
 
 function onSelectWorkflow(id: string) {
@@ -127,6 +180,9 @@ function removeContextSlot(index: number) {
 async function runWorkflow() {
   if (!selectedWorkflow.value) { window.alert('请选择 workflow'); return }
   mode.value = 'run'
+  chat.value?.clearHistory() // Clear previous messages
+  chat.value?.appendSystemMessage(`Workflow "${selectedWorkflow.value}" started`, '▶️ RUN')
+
   // start SSE run and listen for states
   const gen = api.runWorkflowEvents(selectedWorkflow.value)
   (async () => {
@@ -150,7 +206,13 @@ async function runWorkflow() {
         // handle waiting states -> if TEXT INPUT/NUMBER INPUT/CHECKBOX open modal
         if (['TEXT INPUT','NUMBER INPUT','CHECKBOX'].includes((s.state||'').toUpperCase())) {
           const st = (s.state||'').toUpperCase()
-          chat.value?.appendMessage({ role: 'system', content: `Node #${s.node_id} awaiting input: ${s.state}` })
+          const stateMsg = st === 'TEXT INPUT' ? '📝 INPUT'
+                         : st === 'NUMBER INPUT' ? '🔢 NUMBER'
+                         : '☑️ SELECT'
+          chat.value?.appendSystemMessage(
+            `Node #${s.node_id} is awaiting your input`,
+            stateMsg
+          )
           // prepare dialog
           awaitingInput.value.node_id = s.node_id
           awaitingInput.value.type = st
@@ -168,8 +230,17 @@ async function runWorkflow() {
             }
           }
         }
+
+        // handle success/error states
+        if (s.state === 'SUCCESS') {
+          chat.value?.appendSystemMessage(`Node #${s.node_id} completed`, '✅ OK')
+        } else if (s.state === 'ERROR') {
+          chat.value?.appendSystemMessage(`Node #${s.node_id} failed`, '❌ ERROR')
+        }
       }
     }
+    // Workflow completed
+    chat.value?.appendSystemMessage('Workflow execution completed', '✨ DONE')
   })()
 }
 
@@ -203,7 +274,10 @@ async function createWorkflow() {
   }
 }
 
-onMounted(()=>{ loadWorkflowList() })
+onMounted(()=>{
+  loadWorkflowList()
+  loadLLMConfig()
+})
 
 async function submitIntervention() {
   const wid = selectedWorkflow.value
@@ -239,6 +313,53 @@ async function submitIntervention() {
 .props-panel { padding:12px }
 .run-panel { padding:0; height:100% }
 .logo { width:36px; height:36px; margin-right:8px }
+
+/* LLM Indicator */
+.llm-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(100, 116, 139, 0.1);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.llm-indicator.ready {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.llm-indicator.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.llm-indicator .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-indicator 2s ease-in-out infinite;
+}
+
+@keyframes pulse-indicator {
+  0%, 100% { opacity: 0.4 }
+  50% { opacity: 1 }
+}
+
+.llm-indicator.ready .dot {
+  background: #34d399;
+}
+
+.llm-indicator.error .dot {
+  background: #fca5a5;
+}
 
 /* Create id input styles */
 .new-wid-input .el-input__inner {
